@@ -1,7 +1,7 @@
 
 import {createInitializeMint2Instruction, createMint, getMinimumBalanceForRentExemptMint, MINT_SIZE, TOKEN_PROGRAM_ID} from '@solana/spl-token';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { Keypair, SystemProgram, Transaction } from '@solana/web3.js';
+import { Keypair, LAMPORTS_PER_SOL, SystemProgram, Transaction } from '@solana/web3.js';
 
 
 export function TokenLaunchpad() {
@@ -53,6 +53,32 @@ export function TokenLaunchpad() {
     }
 
 
+    async function sendSOL(){
+
+        const to = document.getElementById('to').value;
+        const amount = document.getElementById('amount').value;
+
+        console.log({to,amount});
+
+        const transaction = new Transaction();
+
+        transaction.add(
+            SystemProgram.transfer({
+                fromPubkey:wallet.publicKey,
+                toPubkey:to,
+                lamports:amount*LAMPORTS_PER_SOL
+            })
+        )
+
+        transaction.feePayer = wallet.publicKey;
+        const recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+        transaction.recentBlockhash = recentBlockhash;
+        
+        const response = await wallet.sendTransaction(transaction,connection);
+        console.log("response: ",response);
+
+    }
+
     return  <div style={{
         height: '100vh',
         display: 'flex',
@@ -66,6 +92,14 @@ export function TokenLaunchpad() {
         <input id="image" className='inputText' type='text' placeholder='Image URL'></input> <br />
         <input id="supply" className='inputText' type='text' placeholder='Initial Supply'></input> <br />
 
+
+        <input id="to" className='inputText' type='text' placeholder='Recipient Address'></input> <br />
+        <input id="amount" className='inputText' type='text' placeholder='Amount to Send'></input> <br />
+
+        
+
         <button onClick={createToken} className='btn'>Create a token</button>
+        <button onClick={sendSOL} className='btn'>Send SOL</button>
+
     </div>
 }
